@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "User",
     "Doc",
+    "DocSet",
 ]
 
 MIDDLEWARE = [

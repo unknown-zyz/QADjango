@@ -8,12 +8,13 @@ from django.http import HttpResponse
 
 class DocUpload(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
-        uploaded_file = self.request.FILES.get('file')
-        remark = self.request.data.get('remark')
-        if Doc.objects.filter(name=uploaded_file.name).exists():
+        uploaded_file = request.FILES.get('file')
+        remark = request.data.get('remark')
+        docSet_id = request.data.get('docSet')
+        if Doc.objects.filter(name=uploaded_file.name, docSet_id=docSet_id).exists():
             return Response({'error': 'File name already exists'}, status=status.HTTP_400_BAD_REQUEST)
         Doc.objects.create(file=uploaded_file, name=uploaded_file.name, file_size=uploaded_file.size,
-                           date=date.today(), remark=remark)
+                           date=date.today(), remark=remark, docSet_id=docSet_id)
         return Response({'success': 'Upload success'}, status=status.HTTP_201_CREATED)
 
 
@@ -29,3 +30,6 @@ class DocDownload(generics.RetrieveAPIView):
             response['Content-Type'] = 'application/octet-stream'
             response['Content-Disposition'] = 'attachment; filename="' + instance.name + '"'
             return response
+
+# 实现返回doc列表
+
