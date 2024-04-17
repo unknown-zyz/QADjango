@@ -4,6 +4,7 @@ from .models import Doc
 from .serializers import DocSerializer
 from datetime import date
 from django.http import HttpResponse
+from DocSet.models import DocSet
 
 
 class DocUpload(generics.CreateAPIView):
@@ -13,6 +14,8 @@ class DocUpload(generics.CreateAPIView):
         docSet_id = request.data.get('docSet')
         if Doc.objects.filter(name=uploaded_file.name, docSet_id=docSet_id).exists():
             return Response({'error': 'File name already exists'}, status=status.HTTP_400_BAD_REQUEST)
+        elif DocSet.objects.filter(id=docSet_id, is_active=True).first() is None:
+            return Response({'error': 'DocSet does not exist'}, status=status.HTTP_400_BAD_REQUEST)
         Doc.objects.create(file=uploaded_file, name=uploaded_file.name, file_size=uploaded_file.size,
                            date=date.today(), remark=remark, docSet_id=docSet_id)
         return Response({'success': 'Upload success'}, status=status.HTTP_201_CREATED)
