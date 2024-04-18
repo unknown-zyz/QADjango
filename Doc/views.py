@@ -1,9 +1,27 @@
+import json
+
+import requests
+from django_q.tasks import async_task
 from rest_framework import generics, status
 from rest_framework.response import Response
 from .models import Doc
 from .serializers import DocSerializer
 from datetime import date
 from django.http import HttpResponse
+
+
+def upload_task(docset_id, file):
+    if Doc.objects.filter(name=file.name, docSet_id=docset_id):
+        doc = Doc.objects.get(name=file.name, docSet_id=docset_id)
+        url = f'http://172.16.26.4:8000/docsets/{docset_id}/docs'
+        headers = {'accept': 'application/json'}
+        files = {'file': (file.name, file.file, 'application/pdf')}
+        res = requests.post(url, headers=headers, files=files)
+        if res.status_code == 200:
+            doc.upload_status = "Success"
+        else:
+            doc.upload_status = "Failed"
+        doc.save()
 
 
 class DocUpload(generics.CreateAPIView):
@@ -15,6 +33,7 @@ class DocUpload(generics.CreateAPIView):
             return Response({'error': 'File name already exists'}, status=status.HTTP_400_BAD_REQUEST)
         Doc.objects.create(file=uploaded_file, name=uploaded_file.name, file_size=uploaded_file.size,
                            date=date.today(), remark=remark, docSet_id=docSet_id)
+        async_task(upload_task, docSet_id, uploaded_file)
         return Response({'success': 'Upload success'}, status=status.HTTP_201_CREATED)
 
 

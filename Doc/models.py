@@ -17,6 +17,7 @@ class Doc(models.Model):
     remark = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
     docSet = models.ForeignKey(DocSet, on_delete=models.DO_NOTHING, related_name='docs')
+    upload_status = models.CharField(max_length=50, default="Wait")
 
     def delete(self, using=None, keep_parents=False):
         self.is_active = False

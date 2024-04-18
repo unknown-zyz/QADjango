@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "User",
     "Doc",
     "DocSet",
+    "django_q",
 ]
 
 MIDDLEWARE = [
@@ -146,3 +147,21 @@ CORS_ALLOW_HEADERS = (
     'x-requested-with',
     'Pragma',
 )
+
+Q_CLUSTER = {
+    'name': 'DjangoTest',
+    'workers': 4,
+    'recycle': 500,
+    'timeout': 60,
+    'compress': True,
+    'cpu_affinity': 1,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'label': 'Django Q',
+    'redis': {
+        'host': 'localhost',
+        'port': 6379,
+        'db': 0,
+        'password': '123456',
+    }
+}
