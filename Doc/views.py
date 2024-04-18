@@ -34,6 +34,7 @@ class DocDownload(generics.RetrieveAPIView):
             response['Content-Disposition'] = 'attachment; filename="' + instance.name + '"'
             return response
 
+
 class DocList(generics.ListAPIView):
     queryset = Doc.objects.all()
     serializer_class = DocSerializer
@@ -46,13 +47,7 @@ class DocList(generics.ListAPIView):
             return Doc.objects.filter(docSet_id=docSet_id, is_active=True).all()
         return Doc.objects.filter(is_active=True).all()
 
+
 class DocDelete(generics.DestroyAPIView):
     queryset = Doc.objects.all()
     serializer_class = DocSerializer
-
-    # def delete(self, request, *args, **kwargs):
-    #     instance = self.get_object()
-    #     instance.is_active = False
-    #     instance.save()
-    #     return Response({'success': 'Delete success'}, status=status.HTTP_204_NO_CONTENT)
-
