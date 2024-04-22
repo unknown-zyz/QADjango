@@ -15,7 +15,7 @@ class DocUpload(generics.CreateAPIView):
         if Doc.objects.filter(name=uploaded_file.name, docSet_id=docSet_id).exists():
             return Response({'error': 'File name already exists'}, status=status.HTTP_400_BAD_REQUEST)
         elif DocSet.objects.filter(id=docSet_id, is_active=True).first() is None:
-            return Response({'error': 'DocSet does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'DocSet does not exist'}, status=status.HTTP_404_NOT_FOUND)
         Doc.objects.create(file=uploaded_file, name=uploaded_file.name, file_size=uploaded_file.size,
                            date=date.today(), remark=remark, docSet_id=docSet_id)
         return Response({'success': 'Upload success'}, status=status.HTTP_201_CREATED)
@@ -39,13 +39,16 @@ class DocList(generics.ListAPIView):
     queryset = Doc.objects.all()
     serializer_class = DocSerializer
 
-    def get_queryset(self):
+    def get(self, request, *args, **kwargs):
         docSet_id = self.kwargs.get('pk')
         if docSet_id is not None:
             if DocSet.objects.filter(id=docSet_id, is_active=True).first() is None:
-                return Doc.objects.none()
-            return Doc.objects.filter(docSet_id=docSet_id, is_active=True).all()
-        return Doc.objects.filter(is_active=True).all()
+                return Response({'error': 'DocSet does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+            queryset = Doc.objects.filter(docSet_id=docSet_id, is_active=True).all()
+        else:
+            queryset = Doc.objects.filter(is_active=True).all()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class DocDelete(generics.DestroyAPIView):

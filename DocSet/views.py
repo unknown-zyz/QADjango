@@ -7,7 +7,10 @@ class DocSetListCreateAPIView(generics.ListCreateAPIView):
     queryset = DocSet.objects.all()
     serializer_class = DocSetSerializer
 
+    def get_queryset(self):
+        return DocSet.objects.filter(is_active=True).all()
 
-class DocSetRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+
+class DocSetDestroyAPIView(generics.DestroyAPIView):
     queryset = DocSet.objects.all()
     serializer_class = DocSetSerializer

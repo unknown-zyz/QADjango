@@ -3,5 +3,5 @@ from DocSet.views import *
 
 urlpatterns = [
     path('', DocSetListCreateAPIView.as_view()),
-    path('<int:pk>/', DocSetRetrieveUpdateDestroyAPIView.as_view()),
+    path('<int:pk>/', DocSetDestroyAPIView.as_view()),
 ]
