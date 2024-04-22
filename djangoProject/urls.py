@@ -22,4 +22,5 @@ urlpatterns = [
     path("user/", include("User.urls")),
     path("doc/", include("Doc.urls")),
     path("docset/", include("DocSet.urls")),
+    path("chat/", include("Chat.urls")),
 ]
