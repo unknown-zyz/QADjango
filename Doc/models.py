@@ -11,7 +11,6 @@ def doc_file_path(instance, filename):
 class Doc(models.Model):
     file = models.FileField(upload_to=doc_file_path)
     name = models.CharField(max_length=100)
-    # status = models.CharField(max_length=50)
     file_size = models.FloatField()
     date = models.DateField()
     remark = models.TextField(blank=True, null=True)
