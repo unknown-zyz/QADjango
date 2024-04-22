@@ -1,5 +1,3 @@
-import json
-
 import requests
 from django_q.tasks import async_task
 from rest_framework import generics, status
@@ -13,10 +11,13 @@ from django.http import HttpResponse
 def upload_task(docset_id, file):
     if Doc.objects.filter(name=file.name, docSet_id=docset_id):
         doc = Doc.objects.get(name=file.name, docSet_id=docset_id)
-        url = f'http://172.16.26.4:8000/docsets/{docset_id}/docs'
+        url = f'http://172.16.26.4:8081/docsets/{docset_id}/docs'
         headers = {'accept': 'application/json'}
-        files = {'file': (file.name, file.file, 'application/pdf')}
+        file.seek(0)
+        file_content = file.read()
+        files = [('files', (file.name, file_content, 'application/pdf'))]
         res = requests.post(url, headers=headers, files=files)
+        print(res)
         if res.status_code == 200:
             doc.upload_status = "Success"
         else:
