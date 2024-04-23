@@ -28,7 +28,7 @@ class ChatRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     def get(self, request, **kwargs):
         chat = Chat.objects.get(pk=kwargs['pk'])
-        return JsonResponse({'ChatHistory': chat.getHistory()})
+        return JsonResponse({'ChatHistory': chat.getHistory()}, status=status.HTTP_200_OK)
 
     def post(self, request, **kwargs):
         chat = Chat.objects.get(pk=kwargs['pk'])
