@@ -1,11 +1,6 @@
-import json
+import requests
 
-# 将 Python 对象转换为 JSON 格式的字符串
-data = ['name', 'John', 'age', 30]
-json_string = json.dumps(data)
-print(json_string)
+url = f'http://172.16.26.4:8081/chats/3/'
+ret = requests.post(url, json={"content": "怎样维护cessna-172-amm？"}).json()['message']['content']
+print(ret)
 
-# 将 JSON 格式的字符串转换为 Python 对象
-parsed_data = json.loads(json_string)
-print(parsed_data)
-print(parsed_data[0])
