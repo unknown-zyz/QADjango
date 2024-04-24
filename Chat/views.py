@@ -8,7 +8,7 @@ import requests
 from rest_framework.views import APIView
 
 
-class ChatListCreateAPIView(generics.ListCreateAPIView):
+class ChatCreateAPIView(generics.CreateAPIView):
     queryset = Chat.objects.all()
     serializer_class = ChatSerializer
 
@@ -19,8 +19,21 @@ class ChatListCreateAPIView(generics.ListCreateAPIView):
             return JsonResponse({'error': 'Chat name already exists'}, status=status.HTTP_400_BAD_REQUEST)
         elif DocSet.objects.filter(id=docSet_id, is_active=True).first() is None:
             return JsonResponse({'error': 'DocSet does not exist'}, status=status.HTTP_404_NOT_FOUND)
-        Chat.objects.create(name=name, docSet_id=docSet_id)
-        return JsonResponse({'success': 'Create success'}, status=status.HTTP_201_CREATED)
+        chat = Chat.objects.create(name=name, docSet_id=docSet_id)
+        return JsonResponse({'success': 'Create success', 'chat_id': chat.id}, status=status.HTTP_201_CREATED)
+
+
+class ChatListAPIView(generics.ListAPIView):
+    queryset = Chat.objects.all()
+    serializer_class = ChatSerializer
+
+    def get(self, request, *args, **kwargs):
+        docSet_id = self.kwargs.get('pk')
+        if DocSet.objects.filter(id=docSet_id, is_active=True).first() is None:
+            return JsonResponse({'error': 'DocSet does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        queryset = Chat.objects.filter(docSet_id=docSet_id).all()
+        serializer = ChatSerializer(queryset, many=True)
+        return JsonResponse(serializer.data, safe=False, status=status.HTTP_200_OK)
 
 
 class ChatRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
@@ -47,10 +60,9 @@ class ChatRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
             "content": ret
         }
         chat.updateHistory(ai_content)
-        return JsonResponse({'success': 'chat success'}, status=status.HTTP_200_OK)
+        return JsonResponse({'content': ret}, status=status.HTTP_200_OK)
 
 
-# 导出维修单
 class ExportRepairOrder(APIView):
     queryset = Chat.objects.all()
     serializer_class = ChatSerializer
