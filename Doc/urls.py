@@ -3,8 +3,7 @@ from Doc.views import *
 
 urlpatterns = [
     path('upload/', DocUpload.as_view()),
-    path('download/<int:pk>/', DocDownload.as_view()),
+    path('download/', DocDownload.as_view()),
     path('list/', DocList.as_view()),
-    path('list/<int:pk>/', DocList.as_view()),
     path('delete/', DocDelete.as_view()),
 ]

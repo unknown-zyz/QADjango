@@ -46,7 +46,8 @@ class DocDownload(generics.RetrieveAPIView):
     serializer_class = DocSerializer
 
     def get(self, request, *args, **kwargs):
-        instance = self.get_object()
+        doc_id = self.request.query_params.get('doc')
+        instance = Doc.objects.filter(id=doc_id).first()
         file_path = instance.file.path
         with open(file_path, 'rb') as f:
             response = HttpResponse(f.read())
@@ -60,13 +61,10 @@ class DocList(generics.ListAPIView):
     serializer_class = DocSerializer
 
     def get(self, request, *args, **kwargs):
-        docSet_id = self.kwargs.get('pk')
-        if docSet_id is not None:
-            if DocSet.objects.filter(id=docSet_id, is_active=True).first() is None:
-                return JsonResponse({'error': 'DocSet does not exist'}, status=status.HTTP_400_BAD_REQUEST)
-            queryset = Doc.objects.filter(docSet_id=docSet_id, is_active=True).all()
-        else:
-            queryset = Doc.objects.filter(is_active=True).all()
+        docSet_id = self.request.query_params.get('docset')
+        if DocSet.objects.filter(id=docSet_id, is_active=True).first() is None:
+            return JsonResponse({'error': 'DocSet does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+        queryset = Doc.objects.filter(docSet_id=docSet_id, is_active=True).all()
         serializer = self.get_serializer(queryset, many=True)
         return JsonResponse(serializer.data, safe=False)
 

@@ -28,7 +28,7 @@ class ChatListAPIView(generics.ListAPIView):
     serializer_class = ChatSerializer
 
     def get(self, request, *args, **kwargs):
-        docSet_id = self.kwargs.get('pk')
+        docSet_id = self.request.query_params.get('docset')
         if DocSet.objects.filter(id=docSet_id, is_active=True).first() is None:
             return JsonResponse({'error': 'DocSet does not exist'}, status=status.HTTP_404_NOT_FOUND)
         queryset = Chat.objects.filter(docSet_id=docSet_id).all()
@@ -36,16 +36,18 @@ class ChatListAPIView(generics.ListAPIView):
         return JsonResponse(serializer.data, safe=False, status=status.HTTP_200_OK)
 
 
-class ChatRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+class ChatRetrieveAPIView(generics.RetrieveAPIView):
     queryset = Chat.objects.all()
     serializer_class = ChatSerializer
 
     def get(self, request, **kwargs):
-        chat = Chat.objects.get(pk=kwargs['pk'])
+        chat = Chat.objects.get(pk=self.request.query_params.get('chat'))
         return JsonResponse({'ChatHistory': chat.getHistory()}, status=status.HTTP_200_OK)
 
+
+class ChatChatAPIView(APIView):
     def post(self, request, **kwargs):
-        chat_id = kwargs['pk']
+        chat_id = self.request.query_params.get('chat')
         content = request.data['content']
         chat = Chat.objects.get(pk=chat_id)
         user_content = {
@@ -61,6 +63,11 @@ class ChatRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
         }
         chat.updateHistory(ai_content)
         return JsonResponse({'content': ret}, status=status.HTTP_200_OK)
+
+
+class ChatDestroyAPIView(generics.DestroyAPIView):
+    queryset = Chat.objects.all()
+    serializer_class = ChatSerializer
 
     def destroy(self, request, *args, **kwargs):
         chat_id = self.request.query_params.get('chat')
