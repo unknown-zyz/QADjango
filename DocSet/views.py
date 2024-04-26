@@ -23,6 +23,8 @@ class DocSetListCreateAPIView(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         name = request.data.get('name')
+        if not name:
+            return JsonResponse({'error': 'DocSet name is required'}, status=status.HTTP_400_BAD_REQUEST)
         if DocSet.objects.filter(name=name).exists():
             return JsonResponse({'error': 'DocSet name already exists'}, status=status.HTTP_400_BAD_REQUEST)
         DocSet.objects.create(name=name)

@@ -6,6 +6,14 @@ from DocSet.models import DocSet
 from .serializers import ChatSerializer
 import requests
 from rest_framework.views import APIView
+from django_q.tasks import async_task
+
+
+def chat_create_task(name, docset_id):
+    url = f'http://172.16.26.4:8081/chats/'
+    js = {"name": name, "document_set_id": docset_id}
+    res = requests.post(url, json=js)
+    print(res)
 
 
 class ChatCreateAPIView(generics.CreateAPIView):
@@ -20,6 +28,7 @@ class ChatCreateAPIView(generics.CreateAPIView):
         elif DocSet.objects.filter(id=docSet_id, is_active=True).first() is None:
             return JsonResponse({'error': 'DocSet does not exist'}, status=status.HTTP_404_NOT_FOUND)
         chat = Chat.objects.create(name=name, docSet_id=docSet_id)
+        async_task(chat_create_task, name, docSet_id)
         return JsonResponse({'success': 'Create success', 'chat_id': chat.id}, status=status.HTTP_201_CREATED)
 
 
