@@ -24,7 +24,7 @@ class ChatCreateAPIView(generics.CreateAPIView):
         name = request.data.get('name')
         docSet_id = request.data.get('docSet')
         if Chat.objects.filter(name=name, docSet_id=docSet_id).exists():
-            return JsonResponse({'error': 'Chat name already exists'}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'error': 'Chat name already exists'}, status=status.HTTP_409_CONFLICT)
         elif DocSet.objects.filter(id=docSet_id, is_active=True).first() is None:
             return JsonResponse({'error': 'DocSet does not exist'}, status=status.HTTP_404_NOT_FOUND)
         chat = Chat.objects.create(name=name, docSet_id=docSet_id)

@@ -32,7 +32,7 @@ class DocUpload(generics.CreateAPIView):
         remark = request.data.get('remark')
         docSet_id = request.data.get('docSet')
         if Doc.objects.filter(name=uploaded_file.name, docSet_id=docSet_id).exists():
-            return JsonResponse({'error': 'File name already exists'}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'error': 'File name already exists'}, status=status.HTTP_409_CONFLICT)
         elif DocSet.objects.filter(id=docSet_id, is_active=True).first() is None:
             return JsonResponse({'error': 'DocSet does not exist'}, status=status.HTTP_404_NOT_FOUND)
         Doc.objects.create(file=uploaded_file, name=uploaded_file.name, file_size=uploaded_file.size,
@@ -63,7 +63,7 @@ class DocList(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         docSet_id = self.request.query_params.get('docset')
         if DocSet.objects.filter(id=docSet_id, is_active=True).first() is None:
-            return JsonResponse({'error': 'DocSet does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'error': 'DocSet does not exist'}, status=status.HTTP_404_NOT_FOUND)
         queryset = Doc.objects.filter(docSet_id=docSet_id, is_active=True).all()
         serializer = self.get_serializer(queryset, many=True)
         return JsonResponse(serializer.data, safe=False)

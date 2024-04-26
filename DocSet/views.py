@@ -24,9 +24,9 @@ class DocSetListCreateAPIView(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         name = request.data.get('name')
         if not name:
-            return JsonResponse({'error': 'DocSet name is required'}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'error': 'DocSet name is required'}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
         if DocSet.objects.filter(name=name).exists():
-            return JsonResponse({'error': 'DocSet name already exists'}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'error': 'DocSet name already exists'}, status=status.HTTP_409_CONFLICT)
         DocSet.objects.create(name=name)
         async_task(docset_create_task, name)
         return JsonResponse({'success': 'Create success'}, status=status.HTTP_201_CREATED)
