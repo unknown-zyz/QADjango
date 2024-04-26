@@ -51,14 +51,14 @@ class ChatChatAPIView(APIView):
         content = request.data['content']
         chat = Chat.objects.get(pk=chat_id)
         user_content = {
-            "role": "user",
+            "isLlm": False,
             "content": content
         }
         chat.updateHistory(user_content)
         url = f'http://172.16.26.4:8081/chats/{chat_id}/'
         ret = requests.post(url, json={"content": content}).json()['message']['content']
         ai_content = {
-            "role": "ai",
+            "isLlm": True,
             "content": ret
         }
         chat.updateHistory(ai_content)
@@ -84,17 +84,17 @@ class ExportRepairOrder(APIView):
     serializer_class = ChatSerializer
 
     def post(self, request, **kwargs):
-        chat_id = kwargs['pk']
+        chat_id = self.request.query_params.get('chat')
         chat = Chat.objects.get(pk=chat_id)
         user_content = {
-            "role": "user",
+            "isLlm": False,
             "content": "生成维修记录单"
         }
         chat.updateHistory(user_content)
         url = f'http://172.16.26.4:8081/chats/{chat_id}/'
         ret = requests.post(url, json={"content": "生成维修记录单"}).json()['message']['content']
         ai_content = {
-            "role": "ai",
+            "isLlm": True,
             "content": ret
         }
         chat.updateHistory(ai_content)
