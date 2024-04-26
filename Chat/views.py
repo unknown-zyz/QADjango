@@ -62,6 +62,15 @@ class ChatRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
         chat.updateHistory(ai_content)
         return JsonResponse({'content': ret}, status=status.HTTP_200_OK)
 
+    def destroy(self, request, *args, **kwargs):
+        chat_id = self.request.query_params.get('chat')
+        try:
+            instance = self.get_queryset().get(pk=chat_id)
+        except Chat.DoesNotExist:
+            return JsonResponse({'error': 'Chat does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        self.perform_destroy(instance)
+        return JsonResponse({'success': 'Delete success'}, status=status.HTTP_204_NO_CONTENT)
+
 
 class ExportRepairOrder(APIView):
     queryset = Chat.objects.all()

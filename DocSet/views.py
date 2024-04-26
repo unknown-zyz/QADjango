@@ -33,3 +33,13 @@ class DocSetListCreateAPIView(generics.ListCreateAPIView):
 class DocSetDestroyAPIView(generics.DestroyAPIView):
     queryset = DocSet.objects.all()
     serializer_class = DocSetSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        docset_id = self.request.query_params.get('docset')
+        try:
+            instance = self.get_queryset().get(pk=docset_id)
+        except DocSet.DoesNotExist:
+            return Response({'error': 'DocSet does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        self.perform_destroy(instance)
+        return Response({'success': 'Delete success'}, status=status.HTTP_204_NO_CONTENT)
+

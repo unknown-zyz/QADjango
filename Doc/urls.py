@@ -6,5 +6,5 @@ urlpatterns = [
     path('download/<int:pk>/', DocDownload.as_view()),
     path('list/', DocList.as_view()),
     path('list/<int:pk>/', DocList.as_view()),
-    path('<int:pk>/', DocDelete.as_view()),
+    path('delete/', DocDelete.as_view()),
 ]
