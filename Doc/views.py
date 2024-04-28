@@ -9,7 +9,7 @@ from django.http import HttpResponse
 from DocSet.models import DocSet
 
 
-def upload_task(docset_id, file):
+def doc_upload_task(docset_id, file):
     if Doc.objects.filter(name=file.name, docSet_id=docset_id):
         doc = Doc.objects.get(name=file.name, docSet_id=docset_id)
         url = f'http://172.16.26.4:8081/docsets/{docset_id}/docs'
@@ -26,6 +26,12 @@ def upload_task(docset_id, file):
         doc.save()
 
 
+def doc_delete_task(doc_id):
+    url = f'http://172.16.26.4:8081/docs/{doc_id}'
+    res = requests.delete(url)
+    print(res)
+
+
 class DocUpload(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         uploaded_file = request.FILES.get('file')
@@ -33,11 +39,11 @@ class DocUpload(generics.CreateAPIView):
         docSet_id = request.data.get('docSet')
         if Doc.objects.filter(name=uploaded_file.name, docSet_id=docSet_id).exists():
             return JsonResponse({'error': 'File name already exists'}, status=status.HTTP_409_CONFLICT)
-        elif DocSet.objects.filter(id=docSet_id, is_active=True).first() is None:
+        elif DocSet.objects.filter(id=docSet_id).first() is None:
             return JsonResponse({'error': 'DocSet does not exist'}, status=status.HTTP_404_NOT_FOUND)
         Doc.objects.create(file=uploaded_file, name=uploaded_file.name, file_size=uploaded_file.size,
                            date=date.today(), remark=remark, docSet_id=docSet_id)
-        async_task(upload_task, docSet_id, uploaded_file)
+        async_task(doc_upload_task, docSet_id, uploaded_file)
         return JsonResponse({'success': 'Upload success'}, status=status.HTTP_201_CREATED)
 
 
@@ -62,9 +68,9 @@ class DocList(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         docSet_id = self.request.query_params.get('docset')
-        if DocSet.objects.filter(id=docSet_id, is_active=True).first() is None:
+        if DocSet.objects.filter(id=docSet_id).first() is None:
             return JsonResponse({'error': 'DocSet does not exist'}, status=status.HTTP_404_NOT_FOUND)
-        queryset = Doc.objects.filter(docSet_id=docSet_id, is_active=True).all()
+        queryset = Doc.objects.filter(docSet_id=docSet_id).all()
         serializer = self.get_serializer(queryset, many=True)
         return JsonResponse(serializer.data, safe=False)
 
@@ -80,4 +86,5 @@ class DocDelete(generics.DestroyAPIView):
         except Doc.DoesNotExist:
             return JsonResponse({'error': 'Doc does not exist'}, status=status.HTTP_404_NOT_FOUND)
         self.perform_destroy(instance)
+        async_task(doc_delete_task, doc_id)
         return JsonResponse({'success': 'Delete success'}, status=status.HTTP_204_NO_CONTENT)

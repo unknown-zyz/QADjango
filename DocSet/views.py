@@ -14,12 +14,15 @@ def docset_create_task(name):
     print(res)
 
 
+def docset_delete_task(docset_id):
+    url = f'http://172.16.26.4:8081/docsets/{docset_id}'
+    res = requests.delete(url)
+    print(res)
+
+
 class DocSetListCreateAPIView(generics.ListCreateAPIView):
     queryset = DocSet.objects.all()
     serializer_class = DocSetSerializer
-
-    def get_queryset(self):
-        return DocSet.objects.filter(is_active=True).all()
 
     def post(self, request, *args, **kwargs):
         name = request.data.get('name')
@@ -43,5 +46,5 @@ class DocSetDestroyAPIView(generics.DestroyAPIView):
         except DocSet.DoesNotExist:
             return Response({'error': 'DocSet does not exist'}, status=status.HTTP_404_NOT_FOUND)
         self.perform_destroy(instance)
+        async_task(docset_delete_task, docset_id)
         return Response({'success': 'Delete success'}, status=status.HTTP_204_NO_CONTENT)
-

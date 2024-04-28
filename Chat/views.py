@@ -16,6 +16,12 @@ def chat_create_task(name, docset_id):
     print(res)
 
 
+def chat_delete_task(chat_id):
+    url = f'http://172.16.26.4:8081/chats/{chat_id}'
+    res = requests.delete(url)
+    print(res)
+
+
 class ChatCreateAPIView(generics.CreateAPIView):
     queryset = Chat.objects.all()
     serializer_class = ChatSerializer
@@ -25,7 +31,7 @@ class ChatCreateAPIView(generics.CreateAPIView):
         docSet_id = request.data.get('docSet')
         if Chat.objects.filter(name=name, docSet_id=docSet_id).exists():
             return JsonResponse({'error': 'Chat name already exists'}, status=status.HTTP_409_CONFLICT)
-        elif DocSet.objects.filter(id=docSet_id, is_active=True).first() is None:
+        elif DocSet.objects.filter(id=docSet_id).first() is None:
             return JsonResponse({'error': 'DocSet does not exist'}, status=status.HTTP_404_NOT_FOUND)
         chat = Chat.objects.create(name=name, docSet_id=docSet_id)
         async_task(chat_create_task, name, docSet_id)
@@ -38,7 +44,7 @@ class ChatListAPIView(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         docSet_id = self.request.query_params.get('docset')
-        if DocSet.objects.filter(id=docSet_id, is_active=True).first() is None:
+        if DocSet.objects.filter(id=docSet_id).first() is None:
             return JsonResponse({'error': 'DocSet does not exist'}, status=status.HTTP_404_NOT_FOUND)
         queryset = Chat.objects.filter(docSet_id=docSet_id).all()
         serializer = ChatSerializer(queryset, many=True)
@@ -59,10 +65,6 @@ class ChatChatAPIView(APIView):
         chat_id = self.request.query_params.get('chat')
         content = request.data['content']
         chat = Chat.objects.get(pk=chat_id)
-        # user_content = {
-        #     "isLlm": False,
-        #     "content": content
-        # }
         user_content = {
             "isLlm": False,
             "content": content,
@@ -76,14 +78,14 @@ class ChatChatAPIView(APIView):
         }
         chat.updateHistory(user_content)
         url = f'http://172.16.26.4:8081/chats/{chat_id}/'
-        ret = requests.post(url, json={"content": content}).json()['message']['content']
-        # ai_content = {
-        #     "isLlm": True,
-        #     "content": ret
-        # }
+        response = requests.post(url, json={"content": content})
+        if response.status_code != 200:
+            data = "大模型服务异常，请稍后再试"
+        else:
+            data = response.json()['message']['content']
         ai_content = {
             "isLlm": True,
-            "content": ret,
+            "content": data,
             "ifshowSource": False,
             "sourceNum": 1,
             "sourceList": [
@@ -93,7 +95,6 @@ class ChatChatAPIView(APIView):
             ]
         }
         chat.updateHistory(ai_content)
-        # return JsonResponse({'content': ret}, status=status.HTTP_200_OK)
         return JsonResponse(ai_content, status=status.HTTP_200_OK)
 
 
@@ -108,6 +109,7 @@ class ChatDestroyAPIView(generics.DestroyAPIView):
         except Chat.DoesNotExist:
             return JsonResponse({'error': 'Chat does not exist'}, status=status.HTTP_404_NOT_FOUND)
         self.perform_destroy(instance)
+        async_task(chat_delete_task, chat_id)
         return JsonResponse({'success': 'Delete success'}, status=status.HTTP_204_NO_CONTENT)
 
 
