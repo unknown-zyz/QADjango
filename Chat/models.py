@@ -5,7 +5,7 @@ import json
 
 class Chat(models.Model):
     name = models.CharField(max_length=100)
-    docSet = models.ForeignKey(DocSet, on_delete=models.CASCADE, related_name='chats')
+    docSet = models.ForeignKey(DocSet, on_delete=models.DO_NOTHING, related_name='chats')
     history = models.TextField(blank=True, null=True)
     date = models.DateField(auto_now_add=True)
 
