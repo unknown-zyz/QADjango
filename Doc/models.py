@@ -14,10 +14,6 @@ class Doc(models.Model):
     file_size = models.FloatField()
     date = models.DateField()
     remark = models.TextField(blank=True, null=True)
-    is_active = models.BooleanField(default=True)
-    docSet = models.ForeignKey(DocSet, on_delete=models.DO_NOTHING, related_name='docs')
+    docSet = models.ForeignKey(DocSet, on_delete=models.CASCADE, related_name='docs')
     upload_status = models.CharField(max_length=50, default="Wait")
 
-    def delete(self, using=None, keep_parents=False):
-        self.is_active = False
-        self.save()
