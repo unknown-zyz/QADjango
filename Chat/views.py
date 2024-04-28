@@ -59,19 +59,42 @@ class ChatChatAPIView(APIView):
         chat_id = self.request.query_params.get('chat')
         content = request.data['content']
         chat = Chat.objects.get(pk=chat_id)
+        # user_content = {
+        #     "isLlm": False,
+        #     "content": content
+        # }
         user_content = {
             "isLlm": False,
-            "content": content
+            "content": content,
+            "ifshowSource": False,
+            "sourceNum": 1,
+            "sourceList": [
+                {
+                    "content": "文档5第555行",
+                }
+            ]
         }
         chat.updateHistory(user_content)
         url = f'http://172.16.26.4:8081/chats/{chat_id}/'
         ret = requests.post(url, json={"content": content}).json()['message']['content']
+        # ai_content = {
+        #     "isLlm": True,
+        #     "content": ret
+        # }
         ai_content = {
             "isLlm": True,
-            "content": ret
+            "content": ret,
+            "ifshowSource": False,
+            "sourceNum": 1,
+            "sourceList": [
+                {
+                    "content": "文档5第555行",
+                }
+            ]
         }
         chat.updateHistory(ai_content)
-        return JsonResponse({'content': ret}, status=status.HTTP_200_OK)
+        # return JsonResponse({'content': ret}, status=status.HTTP_200_OK)
+        return JsonResponse(ai_content, status=status.HTTP_200_OK)
 
 
 class ChatDestroyAPIView(generics.DestroyAPIView):
