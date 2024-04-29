@@ -67,14 +67,7 @@ class ChatChatAPIView(APIView):
         chat = Chat.objects.get(pk=chat_id)
         user_content = {
             "isLlm": False,
-            "content": content,
-            "ifshowSource": False,
-            "sourceNum": 1,
-            "sourceList": [
-                {
-                    "content": "文档5第555行",
-                }
-            ]
+            "content": content
         }
         chat.updateHistory(user_content)
         url = f'http://172.16.26.4:8081/chats/{chat_id}/'
@@ -90,7 +83,7 @@ class ChatChatAPIView(APIView):
         ai_content = {
             "isLlm": True,
             "content": data,
-            "ifshowSource": False,
+            "ifshowSource": True,
             "sourceNum": num,
             "sourceList": source
         }
@@ -122,14 +115,7 @@ class ExportRepairOrder(APIView):
         chat = Chat.objects.get(pk=chat_id)
         user_content = {
             "isLlm": False,
-            "content": "生成维修记录单",
-            "ifshowSource": False,
-            "sourceNum": 1,
-            "sourceList": [
-                {
-                    "content": "文档5第555行",
-                }
-            ]
+            "content": "生成维修记录单"
         }
         chat.updateHistory(user_content)
         url = f'http://172.16.26.4:8081/chats/{chat_id}/'
@@ -143,13 +129,13 @@ class ExportRepairOrder(APIView):
         ai_content = {
             "isLlm": True,
             "content": data,
-            "ifshowSource": False,
+            "ifshowSource": True,
             "sourceNum": num,
             "sourceList": source
         }
         chat.updateHistory(ai_content)
         with open('维修记录单.txt', 'w') as f:
-            json.dump(ai_content, f)
+            json.dump(data, f)
         with open('维修记录单.txt', 'rb') as f:
             response = HttpResponse(f.read(), content_type='application/octet-stream')
             response['Content-Disposition'] = 'attachment; filename="维修记录单.txt"'

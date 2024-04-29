@@ -9,14 +9,12 @@ from django.http import HttpResponse
 from DocSet.models import DocSet
 
 
-def doc_upload_task(docset_id, file):
-    if Doc.objects.filter(name=file.name, docSet_id=docset_id):
-        doc = Doc.objects.get(name=file.name, docSet_id=docset_id)
+def doc_upload_task(docset_id, file_name, file_content):
+    if Doc.objects.filter(name=file_name, docSet_id=docset_id):
+        doc = Doc.objects.get(name=file_name, docSet_id=docset_id)
         url = f'http://172.16.26.4:8081/docsets/{docset_id}/docs'
         headers = {'accept': 'application/json'}
-        file.seek(0)
-        file_content = file.read()
-        files = [('files', (file.name, file_content, 'application/pdf'))]
+        files = [('files', (file_name, file_content, 'application/pdf'))]
         res = requests.post(url, headers=headers, files=files)
         print(res)
         if res.status_code == 200:
@@ -44,7 +42,9 @@ class DocUpload(generics.CreateAPIView):
         Doc.objects.create(file=uploaded_file, name=uploaded_file.name,
                            file_size=round(uploaded_file.size / (1024 * 1024), 2),
                            date=date.today(), remark=remark, docSet_id=docSet_id)
-        async_task(doc_upload_task, docSet_id, uploaded_file)
+        uploaded_file.seek(0)
+        file_content = uploaded_file.read()
+        async_task(doc_upload_task, docSet_id, uploaded_file.name, file_content)
         return JsonResponse({'success': 'Upload success'}, status=status.HTTP_201_CREATED)
 
 
