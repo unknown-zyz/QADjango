@@ -81,18 +81,18 @@ class ChatChatAPIView(APIView):
         response = requests.post(url, json={"content": content})
         if response.status_code != 200:
             data = "大模型服务异常，请稍后再试"
+            num = 0
+            source = []
         else:
             data = response.json()['message']['content']
+            num = len(response.json()['documents'])
+            source = response.json()['documents']
         ai_content = {
             "isLlm": True,
             "content": data,
             "ifshowSource": False,
-            "sourceNum": 1,
-            "sourceList": [
-                {
-                    "content": "文档5第555行",
-                }
-            ]
+            "sourceNum": num,
+            "sourceList": source
         }
         chat.updateHistory(ai_content)
         return JsonResponse(ai_content, status=status.HTTP_200_OK)
@@ -134,6 +134,8 @@ class ExportRepairOrder(APIView):
         chat.updateHistory(user_content)
         url = f'http://172.16.26.4:8081/chats/{chat_id}/'
         response = requests.post(url, json={"content": "生成维修记录单"})
+        num = 0
+        source = []
         if response.status_code != 200:
             data = "大模型服务异常，请稍后再试"
         else:
@@ -142,12 +144,8 @@ class ExportRepairOrder(APIView):
             "isLlm": True,
             "content": data,
             "ifshowSource": False,
-            "sourceNum": 1,
-            "sourceList": [
-                {
-                    "content": "文档5第555行",
-                }
-            ]
+            "sourceNum": num,
+            "sourceList": source
         }
         chat.updateHistory(ai_content)
         with open('维修记录单.txt', 'w') as f:
