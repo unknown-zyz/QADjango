@@ -1,10 +1,10 @@
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse, HttpResponse
 from rest_framework import generics, status
 
 from .models import Chat
 from DocSet.models import DocSet
 from .serializers import ChatSerializer
-import requests
+import requests, json
 from rest_framework.views import APIView
 from django_q.tasks import async_task
 
@@ -122,14 +122,37 @@ class ExportRepairOrder(APIView):
         chat = Chat.objects.get(pk=chat_id)
         user_content = {
             "isLlm": False,
-            "content": "生成维修记录单"
+            "content": "生成维修记录单",
+            "ifshowSource": False,
+            "sourceNum": 1,
+            "sourceList": [
+                {
+                    "content": "文档5第555行",
+                }
+            ]
         }
         chat.updateHistory(user_content)
         url = f'http://172.16.26.4:8081/chats/{chat_id}/'
-        ret = requests.post(url, json={"content": "生成维修记录单"}).json()['message']['content']
+        response = requests.post(url, json={"content": "生成维修记录单"})
+        if response.status_code != 200:
+            data = "大模型服务异常，请稍后再试"
+        else:
+            data = response.json()['message']['content']
         ai_content = {
             "isLlm": True,
-            "content": ret
+            "content": data,
+            "ifshowSource": False,
+            "sourceNum": 1,
+            "sourceList": [
+                {
+                    "content": "文档5第555行",
+                }
+            ]
         }
         chat.updateHistory(ai_content)
-        return JsonResponse({'ChatHistory': chat.getHistory()}, status=status.HTTP_200_OK)
+        with open('维修记录单.txt', 'w') as f:
+            json.dump(ai_content, f)
+        with open('维修记录单.txt', 'rb') as f:
+            response = HttpResponse(f.read(), content_type='application/octet-stream')
+            response['Content-Disposition'] = 'attachment; filename="维修记录单.txt"'
+            return response
