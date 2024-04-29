@@ -41,7 +41,8 @@ class DocUpload(generics.CreateAPIView):
             return JsonResponse({'error': 'File name already exists'}, status=status.HTTP_409_CONFLICT)
         elif DocSet.objects.filter(id=docSet_id).first() is None:
             return JsonResponse({'error': 'DocSet does not exist'}, status=status.HTTP_404_NOT_FOUND)
-        Doc.objects.create(file=uploaded_file, name=uploaded_file.name, file_size=uploaded_file.size,
+        Doc.objects.create(file=uploaded_file, name=uploaded_file.name,
+                           file_size=round(uploaded_file.size / (1024 * 1024), 2),
                            date=date.today(), remark=remark, docSet_id=docSet_id)
         async_task(doc_upload_task, docSet_id, uploaded_file)
         return JsonResponse({'success': 'Upload success'}, status=status.HTTP_201_CREATED)
