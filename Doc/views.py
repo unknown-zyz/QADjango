@@ -36,7 +36,6 @@ class DocUpload(generics.CreateAPIView):
         uploaded_file = request.FILES.get('file')
         remark = request.data.get('remark')
         docSet_id = request.data.get('docSet')
-        type = request.data.get('type')
         if Doc.objects.filter(name=uploaded_file.name, docSet_id=docSet_id).exists():
             return JsonResponse({'error': 'File name already exists'}, status=status.HTTP_409_CONFLICT)
         elif DocSet.objects.filter(id=docSet_id).first() is None:
