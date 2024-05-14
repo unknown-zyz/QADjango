@@ -7,12 +7,13 @@ from .serializers import DocSerializer
 from datetime import date
 from django.http import HttpResponse
 from DocSet.models import DocSet
+from djangoProject.settings import LLM_URL
 
 
 def doc_upload_task(docset_id, file_name, file_content):
     if Doc.objects.filter(name=file_name, docSet_id=docset_id):
         doc = Doc.objects.get(name=file_name, docSet_id=docset_id)
-        url = f'http://172.16.26.4:8081/docsets/{docset_id}/docs'
+        url = f'{LLM_URL}/docsets/{docset_id}/docs'
         headers = {'accept': 'application/json'}
         files = [('files', (file_name, file_content, 'application/pdf'))]
         res = requests.post(url, headers=headers, files=files)
@@ -25,7 +26,7 @@ def doc_upload_task(docset_id, file_name, file_content):
 
 
 def doc_delete_task(doc_id):
-    url = f'http://172.16.26.4:8081/docs/{doc_id}'
+    url = f'{LLM_URL}/docs/{doc_id}'
     res = requests.delete(url)
     print(res)
 
@@ -35,6 +36,7 @@ class DocUpload(generics.CreateAPIView):
         uploaded_file = request.FILES.get('file')
         remark = request.data.get('remark')
         docSet_id = request.data.get('docSet')
+        type = request.data.get('type')
         if Doc.objects.filter(name=uploaded_file.name, docSet_id=docSet_id).exists():
             return JsonResponse({'error': 'File name already exists'}, status=status.HTTP_409_CONFLICT)
         elif DocSet.objects.filter(id=docSet_id).first() is None:

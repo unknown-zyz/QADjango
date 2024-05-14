@@ -167,3 +167,5 @@ Q_CLUSTER = {
         # 'password': '123456',
     }
 }
+
+LLM_URL = 'http://172.16.26.4:8081'

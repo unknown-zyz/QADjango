@@ -5,17 +5,18 @@ from rest_framework.response import Response
 from .models import DocSet
 from .serializers import DocSetSerializer
 from django.http import JsonResponse
+from djangoProject.settings import LLM_URL
 
 
 def docset_create_task(name):
-    url = f'http://172.16.26.4:8081/docsets/'
+    url = f'{LLM_URL}/docsets/'
     js = {"name": name}
     res = requests.post(url, json=js)
     print(res)
 
 
 def docset_delete_task(docset_id):
-    url = f'http://172.16.26.4:8081/docsets/{docset_id}'
+    url = f'{LLM_URL}/docsets/{docset_id}'
     res = requests.delete(url)
     print(res)
 

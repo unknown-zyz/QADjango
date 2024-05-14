@@ -1,23 +1,25 @@
-from django.http import JsonResponse, FileResponse, HttpResponse
-from rest_framework import generics, status
-
-from .models import Chat
-from DocSet.models import DocSet
-from .serializers import ChatSerializer
-import requests, json
-from rest_framework.views import APIView
+import json
+import requests
+from django.http import JsonResponse, HttpResponse
 from django_q.tasks import async_task
+from rest_framework import generics, status
+from rest_framework.views import APIView
+
+from DocSet.models import DocSet
+from djangoProject.settings import LLM_URL
+from .models import Chat
+from .serializers import ChatSerializer
 
 
 def chat_create_task(name, docset_id):
-    url = f'http://172.16.26.4:8081/chats/'
+    url = f'{LLM_URL}/chats/'
     js = {"name": name, "document_set_id": docset_id}
     res = requests.post(url, json=js)
     print(res)
 
 
 def chat_delete_task(chat_id):
-    url = f'http://172.16.26.4:8081/chats/{chat_id}'
+    url = f'{LLM_URL}/chats/{chat_id}'
     res = requests.delete(url)
     print(res)
 
@@ -70,7 +72,7 @@ class ChatChatAPIView(APIView):
             "content": content
         }
         chat.updateHistory(user_content)
-        url = f'http://172.16.26.4:8081/chats/{chat_id}/'
+        url = f'{LLM_URL}/chats/{chat_id}/'
         response = requests.post(url, json={"content": content})
         if response.status_code != 200:
             data = "大模型服务异常，请稍后再试"
@@ -118,7 +120,7 @@ class ExportRepairOrder(APIView):
             "content": "生成维修记录单"
         }
         chat.updateHistory(user_content)
-        url = f'http://172.16.26.4:8081/chats/{chat_id}/'
+        url = f'{LLM_URL}/chats/{chat_id}/'
         response = requests.post(url, json={"content": "生成维修记录单"})
         num = 0
         source = []
