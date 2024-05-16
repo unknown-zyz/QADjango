@@ -161,7 +161,7 @@ Q_CLUSTER = {
     'queue_limit': 500,
     'label': 'Django Q',
     'redis': {
-        'host': 'localhost',
+        'host': 'redis',
         'port': 6379,
         'db': 0,
         # 'password': '123456',
