@@ -2,12 +2,15 @@ from django.db import models
 from DocSet.models import DocSet
 import json
 
+from djangoProject.settings import TYPE_CHOICES
+
 
 class Chat(models.Model):
     name = models.CharField(max_length=100)
     docSet = models.ForeignKey(DocSet, on_delete=models.DO_NOTHING, related_name='chats')
     history = models.TextField(blank=True, null=True)
     date = models.DateField(auto_now_add=True)
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES)
 
     # [
     #     {
