@@ -154,6 +154,13 @@ class ChatSummaryAPIView(APIView):
     def post(self, request, **kwargs):
         chat_id = self.request.query_params.get('chat')
         history_id = self.request.query_params.get('history_id')
+        chat = Chat.objects.get(pk=chat_id)
+        allHistory = chat.getHistory()
+        history = allHistory[history_id - 1]
+        content = "请总结下面这段话" + history['content']
+        url = f'{LLM_URL}/chat/'
+        res = requests.post(url, json={"content": content})
+        return JsonResponse(res.json()['content'], status=status.HTTP_200_OK)
 
 
 class OriginalText(APIView):

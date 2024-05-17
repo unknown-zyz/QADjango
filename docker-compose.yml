@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  redis:
+    image: redis:latest
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
