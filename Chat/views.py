@@ -82,8 +82,10 @@ class ChatChatAPIView(APIView):
             data = response.json()['message']['content']
             num = len(response.json()['documents'])
             source = response.json()['documents']
+        history_len = len(chat.getHistory())
         ai_content = {
             "isLlm": True,
+            "id": history_len + 1,
             "content": data,
             "ifshowSource": True,
             "sourceNum": num,
@@ -126,10 +128,14 @@ class ExportRepairOrder(APIView):
         source = []
         if response.status_code != 200:
             data = "大模型服务异常，请稍后再试"
+            content = ""
         else:
-            data = response.json()['message']['content']
+            data = "维修记录单已生成"
+            content = response.json()['message']['content']
+        history_len = len(chat.getHistory())
         ai_content = {
             "isLlm": True,
+            "id": history_len + 1,
             "content": data,
             "ifshowSource": True,
             "sourceNum": num,
@@ -137,8 +143,31 @@ class ExportRepairOrder(APIView):
         }
         chat.updateHistory(ai_content)
         with open('维修记录单.txt', 'w') as f:
-            json.dump(data, f)
+            json.dump(content, f)
         with open('维修记录单.txt', 'rb') as f:
             response = HttpResponse(f.read(), content_type='application/octet-stream')
             response['Content-Disposition'] = 'attachment; filename="维修记录单.txt"'
             return response
+
+
+class ChatSummaryAPIView(APIView):
+    def post(self, request, **kwargs):
+        chat_id = self.request.query_params.get('chat')
+        history_id = self.request.query_params.get('history_id')
+
+
+class OriginalText(APIView):
+    def post(self, request, **kwargs):
+        chat_id = self.request.query_params.get('chat')
+        history_id = self.request.query_params.get('history_id')
+        chat = Chat.objects.get(pk=chat_id)
+        allHistory = chat.getHistory()
+        history = allHistory[history_id - 1]
+        doc_id = history['sourceList']['id']
+        pages = history['sourceList']['pages']
+        texts = []
+        for page_no in pages:
+            url = f'{LLM_URL}/docs/{doc_id}/pages/{page_no}'
+            res = requests.get(url).json()
+            texts.append(res)
+        return JsonResponse(texts, status=status.HTTP_200_OK)
