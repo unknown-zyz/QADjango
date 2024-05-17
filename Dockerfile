@@ -13,5 +13,3 @@ ENV HOST=192.168.5.191
 RUN chmod +x start.sh
 
 CMD ["./start.sh"]
-# CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
-# CMD python manage.py runserver 0.0.0.0:8000 && python manage.py qcluster
