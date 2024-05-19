@@ -10,7 +10,7 @@ class Chat(models.Model):
     docSet = models.ForeignKey(DocSet, on_delete=models.DO_NOTHING, related_name='chats')
     history = models.TextField(blank=True, null=True)
     date = models.DateField(auto_now_add=True)
-    type = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES, default="AMM")
 
     # [
     #     {

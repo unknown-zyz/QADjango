@@ -18,5 +18,5 @@ class Doc(models.Model):
     remark = models.TextField(blank=True, null=True)
     docSet = models.ForeignKey(DocSet, on_delete=models.CASCADE, related_name='docs')
     upload_status = models.CharField(max_length=50, default="Wait")
-    type = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES, default="AMM")
 
