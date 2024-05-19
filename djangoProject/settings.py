@@ -170,3 +170,7 @@ Q_CLUSTER = {
 }
 
 LLM_URL = 'http://172.16.26.4:8081'
+TYPE_CHOICES = (
+    ('AMM', " "),
+    ('FIM', " "),
+)

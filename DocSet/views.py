@@ -8,6 +8,11 @@ from django.http import JsonResponse
 from djangoProject.settings import LLM_URL
 
 
+def docset_name_cat(id, type):
+    docset = DocSet.objects.get(id=id)
+    return docset.name + '_' + type
+
+
 def docset_create_task(name):
     url = f'{LLM_URL}/docsets/'
     js = {"name": name}
@@ -16,7 +21,8 @@ def docset_create_task(name):
 
 
 def docset_delete_task(docset_id):
-    url = f'{LLM_URL}/docsets/{docset_id}'
+    docset = DocSet.objects.get(id=id)
+    url = f'{LLM_URL}/docsets/{docset.name}'
     res = requests.delete(url)
     print(res)
 

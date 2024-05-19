@@ -2,6 +2,8 @@ import requests
 from django_q.tasks import async_task
 from rest_framework import generics, status
 from django.http import JsonResponse
+
+from DocSet.views import docset_name_cat
 from .models import Doc
 from .serializers import DocSerializer
 from datetime import date
@@ -10,19 +12,18 @@ from DocSet.models import DocSet
 from djangoProject.settings import LLM_URL
 
 
-def doc_upload_task(docset_id, file_name, file_content):
-    if Doc.objects.filter(name=file_name, docSet_id=docset_id):
-        doc = Doc.objects.get(name=file_name, docSet_id=docset_id)
-        url = f'{LLM_URL}/docsets/{docset_id}/docs'
-        headers = {'accept': 'application/json'}
-        files = [('files', (file_name, file_content, 'application/pdf'))]
-        res = requests.post(url, headers=headers, files=files)
-        print(res)
-        if res.status_code == 200:
-            doc.upload_status = "Success"
-        else:
-            doc.upload_status = "Failed"
-        doc.save()
+def doc_upload_task(doc, file_name, file_content):
+    docset_name = docset_name_cat(doc.docSet.id, doc.type)
+    url = f'{LLM_URL}/docsets/{docset_name}/docs'
+    headers = {'accept': 'application/json'}
+    files = [('files', (file_name, file_content, 'application/pdf'))]
+    res = requests.post(url, headers=headers, files=files)
+    print(res)
+    if res.status_code == 200:
+        doc.upload_status = "Success"
+    else:
+        doc.upload_status = "Failed"
+    doc.save()
 
 
 def doc_delete_task(doc_id):
@@ -36,16 +37,17 @@ class DocUpload(generics.CreateAPIView):
         uploaded_file = request.FILES.get('file')
         remark = request.data.get('remark')
         docSet_id = request.data.get('docSet')
-        if Doc.objects.filter(name=uploaded_file.name, docSet_id=docSet_id).exists():
+        type = request.data.get('type')
+        if Doc.objects.filter(name=uploaded_file.name, docSet_id=docSet_id, type=type).exists():
             return JsonResponse({'error': 'File name already exists'}, status=status.HTTP_409_CONFLICT)
         elif DocSet.objects.filter(id=docSet_id).first() is None:
             return JsonResponse({'error': 'DocSet does not exist'}, status=status.HTTP_404_NOT_FOUND)
-        Doc.objects.create(file=uploaded_file, name=uploaded_file.name,
+        doc = Doc.objects.create(file=uploaded_file, name=uploaded_file.name,
                            file_size=round(uploaded_file.size / (1024 * 1024), 2),
-                           date=date.today(), remark=remark, docSet_id=docSet_id)
+                           date=date.today(), remark=remark, docSet_id=docSet_id, type=type)
         uploaded_file.seek(0)
         file_content = uploaded_file.read()
-        async_task(doc_upload_task, docSet_id, uploaded_file.name, file_content)
+        async_task(doc_upload_task, doc, uploaded_file.name, file_content)
         return JsonResponse({'success': 'Upload success'}, status=status.HTTP_201_CREATED)
 
 
