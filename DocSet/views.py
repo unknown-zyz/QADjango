@@ -21,13 +21,24 @@ def get_docset_id(id, type):
         return docset.fim_id
 
 
+def printres(res):
+    print(f"Status Code: {res.status_code}")
+    print(f"Headers: {res.headers}")
+    print(f"Response Text: {res.text}")
+    try:
+        print(f"Response JSON: {res.json()}")
+    except ValueError:
+        print("Response content is not in JSON format.")
+
 def docset_create_task(docset):
     url = f'{LLM_URL}/docsets/'
     js = {"name": docset.name+"_AMM"}
     res = requests.post(url, json=js)
+    printres(res)
     docset.amm_id = res.json()['id']
     js = {"name": docset.name+"_FIM"}
     res = requests.post(url, json=js)
+    printres(res)
     docset.fim_id = res.json()['id']
     docset.save()
     print(res)
