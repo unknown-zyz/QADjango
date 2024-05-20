@@ -3,7 +3,7 @@ from django_q.tasks import async_task
 from rest_framework import generics, status
 from django.http import JsonResponse
 
-from DocSet.views import docset_name_cat
+from DocSet.views import get_docset_id
 from .models import Doc
 from .serializers import DocSerializer
 from datetime import date
@@ -13,8 +13,8 @@ from djangoProject.settings import LLM_URL
 
 
 def doc_upload_task(doc, file_name, file_content):
-    docset_name = docset_name_cat(doc.docSet.id, doc.type)
-    url = f'{LLM_URL}/docsets/{docset_name}/docs'
+    docset_id = get_docset_id(doc.docSet.id, doc.type)
+    url = f'{LLM_URL}/docsets/{docset_id}/docs'
     headers = {'accept': 'application/json'}
     files = [('files', (file_name, file_content, 'application/pdf'))]
     res = requests.post(url, headers=headers, files=files)

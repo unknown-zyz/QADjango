@@ -6,15 +6,15 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 
 from DocSet.models import DocSet
-from DocSet.views import docset_name_cat
+from DocSet.views import get_docset_id
 from djangoProject.settings import LLM_URL
 from .models import Chat
 from .serializers import ChatSerializer
 
 
-def chat_create_task(name, docset_name):
+def chat_create_task(name, docset_id):
     url = f'{LLM_URL}/chats/'
-    js = {"name": name, "document_set_name": docset_name}
+    js = {"name": name, "document_set_id": docset_id}
     res = requests.post(url, json=js)
     print(res)
 
@@ -38,7 +38,7 @@ class ChatCreateAPIView(generics.CreateAPIView):
         elif DocSet.objects.filter(id=docSet_id).first() is None:
             return JsonResponse({'error': 'DocSet does not exist'}, status=status.HTTP_404_NOT_FOUND)
         chat = Chat.objects.create(name=name, docSet_id=docSet_id, type=type)
-        async_task(chat_create_task, name, docset_name_cat(docSet_id, type))
+        async_task(chat_create_task, name, get_docset_id(docSet_id, type))
         return JsonResponse({'success': 'Create success', 'chat_id': chat.id}, status=status.HTTP_201_CREATED)
 
 

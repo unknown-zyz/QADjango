@@ -8,21 +8,36 @@ from django.http import JsonResponse
 from djangoProject.settings import LLM_URL
 
 
-def docset_name_cat(id, type):
+# def docset_name_cat(id, type):
+#     docset = DocSet.objects.get(id=id)
+#     return docset.name + '_' + type
+
+
+def get_docset_id(id, type):
     docset = DocSet.objects.get(id=id)
-    return docset.name + '_' + type
+    if type=="AMM":
+        return docset.amm_id
+    else:
+        return docset.fim_id
 
 
-def docset_create_task(name):
+def docset_create_task(docset):
     url = f'{LLM_URL}/docsets/'
-    js = {"name": name}
+    js = {"name": docset.name+"_AMM"}
     res = requests.post(url, json=js)
+    docset.amm_id = res.json()['id']
+    js = {"name": docset.name+"_FIM"}
+    res = requests.post(url, json=js)
+    docset.fim_id = res.json()['id']
+    docset.save()
     print(res)
 
 
 def docset_delete_task(docset_id):
     docset = DocSet.objects.get(id=id)
-    url = f'{LLM_URL}/docsets/{docset.name}'
+    url = f'{LLM_URL}/docsets/{docset.amm_id}'
+    res = requests.delete(url)
+    url = f'{LLM_URL}/docsets/{docset.fim_id}'
     res = requests.delete(url)
     print(res)
 
@@ -37,8 +52,8 @@ class DocSetListCreateAPIView(generics.ListCreateAPIView):
             return JsonResponse({'error': 'DocSet name is required'}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
         if DocSet.objects.filter(name=name).exists():
             return JsonResponse({'error': 'DocSet name already exists'}, status=status.HTTP_409_CONFLICT)
-        DocSet.objects.create(name=name)
-        async_task(docset_create_task, name)
+        docset = DocSet.objects.create(name=name)
+        async_task(docset_create_task, docset)
         return JsonResponse({'success': 'Create success'}, status=status.HTTP_201_CREATED)
 
 
