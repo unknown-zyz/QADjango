@@ -11,8 +11,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: django_project
-      MYSQL_USER: root
-      MYSQL_PASSWORD: rootpassword
+      # MYSQL_USER: root
+      # MYSQL_PASSWORD: rootpassword
     volumes:
       - mysql-data:/var/lib/mysql
 
