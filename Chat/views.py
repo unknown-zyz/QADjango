@@ -160,8 +160,8 @@ class ChatSummaryAPIView(APIView):
         chat = Chat.objects.get(pk=chat_id)
         allHistory = chat.getHistory()
         history = allHistory[history_id - 1]
-        content = "请总结下面这段话" + history['content']
-        url = "http://192.168.5.191:8887/chat/"
+        content = history['content']
+        url = "http://192.168.5.191:8887/summary/"
         res = requests.post(url, json={"content": content})
         return JsonResponse(res.json(), status=status.HTTP_200_OK)
 
