@@ -10,6 +10,6 @@ EXPOSE 8000
 
 ENV HOST=192.168.5.191
 
-RUN chmod +x /app/start.sh
+RUN chmod a+x /app/start.sh
 
 CMD ["/app/start.sh"]
