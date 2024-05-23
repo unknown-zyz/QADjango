@@ -81,7 +81,7 @@ class ChatChatAPIView(APIView):
             num = 0
             source = []
         else:
-            data = response.json()['message']['content']
+            data = response.json()['content']
             num = len(response.json()['documents'])
             source = response.json()['documents']
         history_len = len(chat.getHistory())
@@ -133,7 +133,7 @@ class ExportRepairOrder(APIView):
             content = ""
         else:
             data = "维修记录单已生成"
-            content = response.json()['message']['content']
+            content = response.json()['content']
         history_len = len(chat.getHistory())
         ai_content = {
             "isLlm": True,
@@ -156,27 +156,31 @@ class ChatSummaryAPIView(APIView):
     def post(self, request, **kwargs):
         chat_id = self.request.query_params.get('chat')
         history_id = self.request.query_params.get('history_id')
+        history_id = int(history_id)
         chat = Chat.objects.get(pk=chat_id)
         allHistory = chat.getHistory()
         history = allHistory[history_id - 1]
         content = "请总结下面这段话" + history['content']
         url = f'{LLM_URL}/chat/'
         res = requests.post(url, json={"content": content})
-        return JsonResponse(res.json()['content'], status=status.HTTP_200_OK)
+        return JsonResponse(res.json(), status=status.HTTP_200_OK)
 
 
 class OriginalText(APIView):
     def post(self, request, **kwargs):
         chat_id = self.request.query_params.get('chat')
         history_id = self.request.query_params.get('history_id')
+        history_id = int(history_id)
         chat = Chat.objects.get(pk=chat_id)
         allHistory = chat.getHistory()
         history = allHistory[history_id - 1]
-        doc_id = history['sourceList']['id']
-        pages = history['sourceList']['pages']
         texts = []
-        for page_no in pages:
-            url = f'{LLM_URL}/docs/{doc_id}/pages/{page_no}'
-            res = requests.get(url).json()
-            texts.append(res)
-        return JsonResponse(texts, status=status.HTTP_200_OK)
+        sourceList = history['sourceList']
+        for source in sourceList:
+            doc_id = source['id']
+            pages = source['pages']
+            for page_no in pages:
+                url = f'{LLM_URL}/docs/{doc_id}/page/{page_no}'
+                res = requests.get(url).json()
+                texts.append(res)
+        return JsonResponse(texts, safe=False, status=status.HTTP_200_OK)
