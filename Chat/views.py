@@ -119,31 +119,38 @@ class ExportRepairOrder(APIView):
     def post(self, request, **kwargs):
         chat_id = self.request.query_params.get('chat')
         chat = Chat.objects.get(pk=chat_id)
-        user_content = {
-            "isLlm": False,
-            "content": "生成维修记录单"
-        }
-        chat.updateHistory(user_content)
-        url = f'{LLM_URL}/chats/{chat_id}/'
-        response = requests.post(url, json={"content": "生成维修记录单"})
-        num = 0
-        source = []
-        if response.status_code != 200:
-            data = "大模型服务异常，请稍后再试"
-            content = ""
-        else:
-            data = "维修记录单已生成"
-            content = response.json()['content']
-        history_len = len(chat.getHistory())
-        ai_content = {
-            "isLlm": True,
-            "id": history_len + 1,
-            "content": data,
-            "ifshowSource": True,
-            "sourceNum": num,
-            "sourceList": source
-        }
-        chat.updateHistory(ai_content)
+        # user_content = {
+        #     "isLlm": False,
+        #     "content": "生成维修记录单"
+        # }
+        # chat.updateHistory(user_content)
+        # url = f'{LLM_URL}/chats/{chat_id}/'
+        # response = requests.post(url, json={"content": "生成维修记录单"})
+        # num = 0
+        # source = []
+        # if response.status_code != 200:
+        #     data = "大模型服务异常，请稍后再试"
+        #     content = ""
+        # else:
+        #     data = "维修记录单已生成"
+        #     content = response.json()['content']
+        # history_len = len(chat.getHistory())
+        # ai_content = {
+        #     "isLlm": True,
+        #     "id": history_len + 1,
+        #     "content": data,
+        #     "ifshowSource": True,
+        #     "sourceNum": num,
+        #     "sourceList": source
+        # }
+        # chat.updateHistory(ai_content)
+        js = []
+        historyList = chat.getHistory()
+        for history in historyList:
+            js.append(history['content'])
+        url = "http://192.168.5.191:8887/document/"
+        response = requests.post(url, json={"content": ''.join(js)})
+        content = response.json()['content']
         with open('维修记录单.txt', 'w') as f:
             json.dump(content, f)
         with open('维修记录单.txt', 'rb') as f:
