@@ -153,9 +153,9 @@ class ExportRepairOrder(APIView):
 
 
 class ChatSummaryAPIView(APIView):
-    def post(self, request, **kwargs):
-        chat_id = self.request.query_params.get('chat')
-        history_id = self.request.query_params.get('history_id')
+    def post(self, request, *args, **kwargs):
+        chat_id = self.request.data.get('chat')
+        history_id = self.request.data.get('history_id')
         history_id = int(history_id)
         chat = Chat.objects.get(pk=chat_id)
         allHistory = chat.getHistory()
@@ -167,9 +167,9 @@ class ChatSummaryAPIView(APIView):
 
 
 class OriginalText(APIView):
-    def post(self, request, **kwargs):
-        chat_id = self.request.query_params.get('chat')
-        history_id = self.request.query_params.get('history_id')
+    def post(self, request, *args, **kwargs):
+        chat_id = self.request.data.get('chat')
+        history_id = self.request.data.get('history_id')
         history_id = int(history_id)
         chat = Chat.objects.get(pk=chat_id)
         allHistory = chat.getHistory()
