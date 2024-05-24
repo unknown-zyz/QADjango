@@ -1,5 +1,6 @@
 import json
 import re
+import traceback
 
 from django.contrib.auth.hashers import make_password, check_password
 from django.db.models import Q
@@ -26,7 +27,8 @@ def userRegister(request):
     try:
         new_user = User(phone=phone, password=make_password(password))
         new_user.save()
-    except Exception:
+    except Exception as e:
+        traceback.print_exc()
         return JsonResponse({'code': 500, 'message': "数据库保存失败", 'data': {}})
     return JsonResponse({'code': 200, 'message': "注册成功", 'data': {}})
 
