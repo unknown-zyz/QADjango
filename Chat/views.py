@@ -30,8 +30,8 @@ class ChatCreateAPIView(generics.CreateAPIView):
     serializer_class = ChatSerializer
 
     def post(self, request, *args, **kwargs):
-        name = request.data.get('name')
         docSet_id = request.data.get('docSet')
+        name = docSet_id + "_" + request.data.get('name')
         type = request.data.get('type')
         if Chat.objects.filter(name=name, docSet_id=docSet_id, type=type).exists():
             return JsonResponse({'error': 'Chat name already exists'}, status=status.HTTP_409_CONFLICT)
@@ -52,7 +52,10 @@ class ChatListAPIView(generics.ListAPIView):
             return JsonResponse({'error': 'DocSet does not exist'}, status=status.HTTP_404_NOT_FOUND)
         queryset = Chat.objects.filter(docSet_id=docSet_id).all()
         serializer = ChatSerializer(queryset, many=True)
-        return JsonResponse(serializer.data, safe=False, status=status.HTTP_200_OK)
+        data = serializer.data
+        for chat in data:
+            chat['name'] = chat['name'].split('_', 1)[-1]
+        return JsonResponse(data, safe=False, status=status.HTTP_200_OK)
 
 
 class ChatRetrieveAPIView(generics.RetrieveAPIView):
@@ -144,15 +147,15 @@ class ExportRepairOrder(APIView):
         #     "sourceList": source
         # }
         # chat.updateHistory(ai_content)
-        js = []
+        content = []
         historyList = chat.getHistory()
         for history in historyList:
-            js.append(history['content'])
+            content.append(history['content'])
         url = "http://192.168.5.191:8887/document/"
-        response = requests.post(url, json={"content": ''.join(js)})
-        content = response.json()['content']
+        response = requests.post(url, json={"content": ''.join(content)})
+        result = response.json()['result']
         with open('维修记录单.txt', 'w') as f:
-            json.dump(content, f)
+            json.dump(result, f)
         with open('维修记录单.txt', 'rb') as f:
             response = HttpResponse(f.read(), content_type='application/octet-stream')
             response['Content-Disposition'] = 'attachment; filename="维修记录单.txt"'
