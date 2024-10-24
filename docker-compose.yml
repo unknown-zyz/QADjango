@@ -18,6 +18,7 @@ services:
 
   web:
     build: .
+    image: unknownzyz/web:latest
     ports:
       - "8000:8000"
     volumes:
